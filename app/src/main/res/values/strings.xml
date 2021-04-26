@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Faraway Scan</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Preference Titles -->
+    <string name="Scan">Scan</string>
+
+    <!-- Scan Preferences -->
+    <string name="resolution">Resolution</string>
+    <string name="autozoom">Auto Zoom</string>
 </resources>

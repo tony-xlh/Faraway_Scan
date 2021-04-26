@@ -18,8 +18,10 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.preference.PreferenceManager;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.media.Image;
@@ -69,6 +71,7 @@ public class CameraActivity extends AppCompatActivity {
     private BarcodeReader dbr;
     private SeekBar zoomRatioSeekBar;
     private Long TouchDownTime;
+    private SharedPreferences prefs;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,6 +81,7 @@ public class CameraActivity extends AppCompatActivity {
         resultView = findViewById(R.id.resultView);
         codeImageView = findViewById(R.id.codeImageView);
         codeImageView.setImageBitmap(null);
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
         exec = Executors.newSingleThreadExecutor();
 
         try {
@@ -176,12 +180,18 @@ public class CameraActivity extends AppCompatActivity {
 
     @SuppressLint("UnsafeExperimentalUsageError")
     private void bindPreviewAndImageAnalysis(@NonNull ProcessCameraProvider cameraProvider) {
-        Size resolution = new Size(720, 1280);
+        int resWidth=720;
+        int resHeight=1280;
+        if (prefs.getString("resolution", "1080P").equals("1080P")) {
+            resWidth=1080;
+            resHeight=1920;
+        }
+        Size resolution = new Size(resWidth, resHeight);
         Display d = getDisplay();
         if (d.getRotation() != Surface.ROTATION_0) {
-            resolution = new Size(1280, 720);
+            resolution = new Size(resHeight, resWidth);
         }
-
+        Log.d("DBR",resHeight+"x"+resWidth);
         Preview.Builder previewBuilder = new Preview.Builder();
 
         previewBuilder.setTargetResolution(resolution);
@@ -215,11 +225,13 @@ public class CameraActivity extends AppCompatActivity {
                 }
 
                 if (results.length==0 && zoomRatioSeekBar.getProgress()<40){
-                    Log.d("DBR", "auto zoom");
-                    try {
-                        AutoZoom(dbr.getIntermediateResults(),bitmap);
-                    } catch (BarcodeReaderException e) {
-                        e.printStackTrace();
+                    if (prefs.getBoolean("autozoom", true) == true){
+                        Log.d("DBR", "auto zoom");
+                        try {
+                            AutoZoom(dbr.getIntermediateResults(),bitmap);
+                        } catch (BarcodeReaderException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 StringBuilder sb = new StringBuilder();

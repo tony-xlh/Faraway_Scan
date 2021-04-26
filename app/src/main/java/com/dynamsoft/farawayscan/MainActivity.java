@@ -51,4 +51,9 @@ public class MainActivity extends AppCompatActivity {
                 CAMERA_REQUEST_CODE
         );
     }
+
+    public void settingsButton_Clicked(View view){
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
 }

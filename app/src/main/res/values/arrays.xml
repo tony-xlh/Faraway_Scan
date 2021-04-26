@@ -1,0 +1,12 @@
+<resources>
+    <!-- Scan Preference -->
+    <string-array name="resolution_entries">
+        <item>1080P</item>
+        <item>720P</item>
+    </string-array>
+
+    <string-array name="resolution_values">
+        <item>1080P</item>
+        <item>720P</item>
+    </string-array>
+</resources>

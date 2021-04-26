@@ -23,5 +23,12 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="Open Camera" />
+        <Button
+            android:id="@+id/settingsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="settingsButton_Clicked"
+            android:text="Settings" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
