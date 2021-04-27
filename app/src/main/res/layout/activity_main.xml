@@ -40,5 +40,13 @@
             android:gravity="center"
             android:onClick="settingsButton_Clicked"
             android:text="Settings" />
+
+        <Button
+            android:id="@+id/historyButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="historyButton_Clicked"
+            android:text="History" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

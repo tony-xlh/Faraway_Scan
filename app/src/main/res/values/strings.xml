@@ -4,9 +4,16 @@
 
     <!-- Preference Titles -->
     <string name="Scan">Scan</string>
+    <string name="History_header">History</string>
 
     <!-- Scan Preferences -->
     <string name="resolution">Resolution</string>
     <string name="autozoom">Auto Zoom</string>
     <string name="superresolution">Super Resolution</string>
+
+    <!-- History Preferences -->
+    <string name="record_history">Record History</string>
+    <string name="save_only_superresolution">Only Save SuperResolution Result</string>
+    <string name="save_image">Save Image</string>
+
 </resources>

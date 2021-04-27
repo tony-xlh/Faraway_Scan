@@ -55,8 +55,11 @@ import com.dynamsoft.dbr.PublicRuntimeSettings;
 import com.dynamsoft.dbr.TextResult;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -234,14 +237,22 @@ public class CameraActivity extends AppCompatActivity {
                                 decoded = decodeBitmap(srbm);
                                 if (decoded.length>0){
                                     UpdateCodeAndSRImage(cropped,srbm);
+                                    saveRecord(getBarcodeResult(decoded),cropped,srbm);
                                 }
                             }
-                        } catch (BarcodeReaderException e) {
+                        } catch (BarcodeReaderException | IOException e) {
                             e.printStackTrace();
                         }
                     }
                 } else if (decoded.length>0){
                     UpdateCodeImage(decoded[0].localizationResult.resultPoints,bitmap);
+                    if (prefs.getBoolean("save_only_superresolution", false) == false){
+                        try {
+                            saveRecord(getBarcodeResult(decoded),bitmap,null);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
                 image.close();
             }
@@ -276,18 +287,23 @@ public class CameraActivity extends AppCompatActivity {
                 }
             }
         }
+
+        String resultString = getBarcodeResult(results);
+        Log.d("DBR", resultString);
+        resultView.setText(resultString);
+        return results;
+    }
+
+    private String getBarcodeResult(TextResult[] results){
         StringBuilder sb = new StringBuilder();
         sb.append("Found ").append(results.length).append(" barcode(s):\n");
         if (results.length>0){
             for (int i = 0; i < results.length; i++) {
                 sb.append(results[i].barcodeText);
                 sb.append("\n");
-
             }
         }
-        Log.d("DBR", sb.toString());
-        resultView.setText(sb.toString());
-        return results;
+        return sb.toString();
     }
 
     private Bitmap rotatedBitmap(Bitmap bitmap, int rotationDegrees) {
@@ -295,6 +311,32 @@ public class CameraActivity extends AppCompatActivity {
         m.postRotate(rotationDegrees);
         Bitmap bitmapRotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, false);
         return bitmapRotated;
+    }
+
+    //Leave sr to null if not exist
+    private void saveRecord(String result, Bitmap image,Bitmap sr) throws IOException {
+        if (image != null) {
+            Long timestamp = System.currentTimeMillis();
+            File path = this.getExternalFilesDir(null);
+            File imgfile = new File(path, timestamp + ".jpg");
+            File srfile = new File(path, timestamp + "-sr.jpg");
+            File txtfile = new File(path, timestamp + ".txt");
+            Log.d("DBR", imgfile.getAbsolutePath());
+            Boolean save_image = prefs.getBoolean("save_image", false);
+            if (save_image) {
+                FileOutputStream outStream = new FileOutputStream(imgfile);
+                image.compress(Bitmap.CompressFormat.JPEG, 50, outStream);
+                outStream.close();
+                if (sr!=null){
+                    FileOutputStream srStream = new FileOutputStream(srfile);
+                    sr.compress(Bitmap.CompressFormat.JPEG, 50, srStream);
+                    srStream.close();
+                }
+            }
+            FileOutputStream outStream2 = new FileOutputStream(txtfile);
+            outStream2.write(result.getBytes(Charset.defaultCharset()));
+            outStream2.close();
+        }
     }
 
     private void AutoZoom(IntermediateResult[] intermediateResults,Bitmap bitmap){

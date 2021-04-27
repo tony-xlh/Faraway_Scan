@@ -61,4 +61,9 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, PictureActivity.class);
         startActivity(intent);
     }
+
+    public void historyButton_Clicked(View view){
+        Intent intent = new Intent(this, HistoryActivity.class);
+        startActivity(intent);
+    }
 }

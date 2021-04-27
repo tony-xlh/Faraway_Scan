@@ -1,7 +1,6 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory app:title="@string/Scan">
-
         <ListPreference
             app:defaultValue="720P"
             app:entries="@array/resolution_entries"
@@ -19,6 +18,18 @@
             app:key="superresolution"
             app:defaultValue="false"
             app:title="@string/superresolution" />
+    </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/History_header">
+        <SwitchPreferenceCompat
+            app:key="record_history"
+            app:title="@string/record_history"/>
+        <SwitchPreferenceCompat
+            app:key="save_image"
+            app:title="@string/save_image"/>
+        <SwitchPreferenceCompat
+            app:key="save_only_superresolution"
+            app:defaultValue="false"
+            app:title="@string/save_only_superresolution"/>
     </PreferenceCategory>
 </PreferenceScreen>
