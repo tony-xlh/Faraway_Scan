@@ -174,7 +174,7 @@ public class PictureActivity extends AppCompatActivity {
                 Log.d("DBR","no detected zones");
             }
 
-            if (original && prefs.getBoolean("superresolution", true) == true){
+            if (original && prefs.getBoolean("superresolution", false) == true){
                 if (resultPoints==null){
                     trySr(iv);
                 }else{

@@ -24,6 +24,7 @@ import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
@@ -66,12 +67,14 @@ public class CameraActivity extends AppCompatActivity {
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private TextView resultView;
     private ImageView codeImageView;
+    private ImageView srImageView;
     private ExecutorService exec;
     private Camera camera;
     private BarcodeReader dbr;
     private SeekBar zoomRatioSeekBar;
     private Long TouchDownTime;
     private SharedPreferences prefs;
+    private SuperResolution sr;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,10 +83,12 @@ public class CameraActivity extends AppCompatActivity {
         previewView = findViewById(R.id.previewView);
         resultView = findViewById(R.id.resultView);
         codeImageView = findViewById(R.id.codeImageView);
+        srImageView = findViewById(R.id.srImageView);
         codeImageView.setImageBitmap(null);
+        srImageView.setImageBitmap(null);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         exec = Executors.newSingleThreadExecutor();
-
+        sr = new SuperResolution(this);
         try {
             dbr = new BarcodeReader("t0068MgAAAJWPwDybm7nk0f9xYH25MMaVrZYcmhsiVoZrVo2hfcwRS74T6QA79OfzyvhC+9fgFI2noI8zBc66WHFCusVUgqk=");
         } catch (BarcodeReaderException e) {
@@ -139,6 +144,7 @@ public class CameraActivity extends AppCompatActivity {
         if (zoomRatioSeekBar.getProgress() > 0) {
             zoomRatioSeekBar.setProgress(0);
             codeImageView.setImageBitmap(null);
+            srImageView.setImageBitmap(null);
         } else {
             super.onBackPressed();
         }
@@ -212,40 +218,31 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void analyze(@NonNull ImageProxy image) {
                 int rotationDegrees = image.getImageInfo().getRotationDegrees();
-                TextResult[] results = null;
                 Bitmap bitmap = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
                 YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
                 converter.yuvToRgb(image.getImage(), bitmap);
                 bitmap = rotatedBitmap(bitmap, rotationDegrees);
-
-                try {
-                    results = dbr.decodeBufferedImage(bitmap, "");
-                } catch (BarcodeReaderException | IOException e) {
-                    e.printStackTrace();
-                }
-
-                if (results.length==0 && zoomRatioSeekBar.getProgress()<40){
-                    if (prefs.getBoolean("autozoom", true) == true){
-                        Log.d("DBR", "auto zoom");
+                TextResult[] decoded = decodeBitmap(bitmap);
+                if (decoded.length == 0 || decoded == null){
+                    if (prefs.getBoolean("superresolution", false) == true){
                         try {
-                            AutoZoom(dbr.getIntermediateResults(),bitmap);
+                            Point[] resultPoints = Utils.getResultsPointsWithHighestConfidence(dbr.getIntermediateResults());
+                            if (resultPoints!=null){
+                                Log.d("DBR","run super resolution");
+                                Bitmap cropped = Utils.DetecetdBarcodeZone(resultPoints,bitmap);
+                                Bitmap srbm = sr.SuperResolutionImage(cropped);
+                                decoded = decodeBitmap(srbm);
+                                if (decoded.length>0){
+                                    UpdateCodeAndSRImage(cropped,srbm);
+                                }
+                            }
                         } catch (BarcodeReaderException e) {
                             e.printStackTrace();
                         }
                     }
+                } else if (decoded.length>0){
+                    UpdateCodeImage(decoded[0].localizationResult.resultPoints,bitmap);
                 }
-                StringBuilder sb = new StringBuilder();
-                sb.append("Found ").append(results.length).append(" barcode(s):\n");
-                if (results.length>0){
-                    for (int i = 0; i < results.length; i++) {
-                        sb.append(results[i].barcodeText);
-                        sb.append("\n");
-
-                    }
-                    UpdateCodeImage(results[0].localizationResult.resultPoints,bitmap);
-                }
-                Log.d("DBR", sb.toString());
-                resultView.setText(sb.toString());
                 image.close();
             }
         });
@@ -259,6 +256,38 @@ public class CameraActivity extends AppCompatActivity {
                 .addUseCase(imageAnalysis)
                 .build();
         camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, useCaseGroup);
+    }
+
+    private TextResult[] decodeBitmap(Bitmap bitmap){
+        TextResult[] results = null;
+        try {
+            results = dbr.decodeBufferedImage(bitmap, "");
+        } catch (BarcodeReaderException | IOException e) {
+            e.printStackTrace();
+        }
+
+        if (results.length==0 && zoomRatioSeekBar.getProgress()<40){
+            if (prefs.getBoolean("autozoom", true) == true){
+                Log.d("DBR", "auto zoom");
+                try {
+                    AutoZoom(dbr.getIntermediateResults(),bitmap);
+                } catch (BarcodeReaderException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Found ").append(results.length).append(" barcode(s):\n");
+        if (results.length>0){
+            for (int i = 0; i < results.length; i++) {
+                sb.append(results[i].barcodeText);
+                sb.append("\n");
+
+            }
+        }
+        Log.d("DBR", sb.toString());
+        resultView.setText(sb.toString());
+        return results;
     }
 
     private Bitmap rotatedBitmap(Bitmap bitmap, int rotationDegrees) {
@@ -303,6 +332,17 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
         return percent;
+    }
+
+    private void UpdateCodeAndSRImage(Bitmap cropped,Bitmap sr){
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // This code will always run on the UI thread, therefore is safe to modify UI elements.
+                codeImageView.setImageBitmap(cropped);
+                srImageView.setImageBitmap(sr);
+            }
+        });
     }
 
     private void ZoominToBarcodeZone(Point[] resultPoints,Bitmap bitmap){

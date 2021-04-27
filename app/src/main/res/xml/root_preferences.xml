@@ -17,7 +17,7 @@
 
         <SwitchPreferenceCompat
             app:key="superresolution"
-            app:defaultValue="true"
+            app:defaultValue="false"
             app:title="@string/superresolution" />
 
     </PreferenceCategory>

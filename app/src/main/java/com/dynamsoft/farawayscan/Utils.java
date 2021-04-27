@@ -34,4 +34,25 @@ public class Utils {
         }
         return null;
     }
+
+    public static Bitmap DetecetdBarcodeZone(Point[] resultPoints, Bitmap bitmap){
+        int minX,maxX,minY,maxY;
+        minX=resultPoints[0].x;
+        minY=resultPoints[0].y;
+        maxX=0;
+        maxY=0;
+        for (Point point:resultPoints){
+            minX=Math.min(point.x,minX);
+            minY=Math.min(point.y,minY);
+            maxX=Math.max(point.x,maxX);
+            maxY=Math.max(point.y,maxY);
+        }
+        int width = maxX-minX;
+        int height = maxY-minY;
+        if (width<0 || height<0){
+            return bitmap;
+        }
+        Bitmap cropped = Bitmap.createBitmap(bitmap, minX, minY, width, height);
+        return cropped;
+    }
 }
