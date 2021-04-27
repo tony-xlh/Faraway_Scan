@@ -321,15 +321,17 @@ public class CameraActivity extends AppCompatActivity {
             File imgfile = new File(path, timestamp + ".jpg");
             File srfile = new File(path, timestamp + "-sr.jpg");
             File txtfile = new File(path, timestamp + ".txt");
+            String image_quality_str = prefs.getString("image_quality", "100");
+            int image_quality = Integer.parseInt(image_quality_str);
             Log.d("DBR", imgfile.getAbsolutePath());
             Boolean save_image = prefs.getBoolean("save_image", false);
             if (save_image) {
                 FileOutputStream outStream = new FileOutputStream(imgfile);
-                image.compress(Bitmap.CompressFormat.JPEG, 50, outStream);
+                image.compress(Bitmap.CompressFormat.JPEG, image_quality, outStream);
                 outStream.close();
                 if (sr!=null){
                     FileOutputStream srStream = new FileOutputStream(srfile);
-                    sr.compress(Bitmap.CompressFormat.JPEG, 50, srStream);
+                    sr.compress(Bitmap.CompressFormat.JPEG, image_quality, srStream);
                     srStream.close();
                 }
             }
