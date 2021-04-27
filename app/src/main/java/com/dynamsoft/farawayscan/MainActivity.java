@@ -10,20 +10,20 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
     private static final int CAMERA_REQUEST_CODE = 10;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button enableCamera = findViewById(R.id.enableCamera);
+        Button liveScan = findViewById(R.id.liveScan);
         Context ctx=this;
-        enableCamera.setOnClickListener(new View.OnClickListener() {
+        liveScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (hasCameraPermission()) {
@@ -54,6 +54,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void settingsButton_Clicked(View view){
         Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    public void readImagesButton_Clicked(View view){
+        Intent intent = new Intent(this, PictureActivity.class);
         startActivity(intent);
     }
 }

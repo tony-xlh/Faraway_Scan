@@ -17,12 +17,22 @@
             android:text="This is a CameraX test app!"
             android:gravity="center">
         </TextView>
+
         <Button
-            android:id="@+id/enableCamera"
+            android:id="@+id/liveScan"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="Open Camera" />
+            android:text="Live Scan" />
+
+        <Button
+            android:id="@+id/readImages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="readImagesButton_Clicked"
+            android:text="Read Images" />
+
         <Button
             android:id="@+id/settingsButton"
             android:layout_width="match_parent"

@@ -261,18 +261,6 @@ public class CameraActivity extends AppCompatActivity {
         camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, useCaseGroup);
     }
 
-    private class ImageData {
-        private int mWidth, mHeight, mStride;
-        byte[] mBytes;
-
-        ImageData(byte[] bytes, int nWidth, int nHeight, int nStride) {
-            mBytes = bytes;
-            mWidth = nWidth;
-            mHeight = nHeight;
-            mStride = nStride;
-        }
-    }
-
     private Bitmap rotatedBitmap(Bitmap bitmap, int rotationDegrees) {
         Matrix m = new Matrix();
         m.postRotate(rotationDegrees);
@@ -282,26 +270,9 @@ public class CameraActivity extends AppCompatActivity {
 
     private void AutoZoom(IntermediateResult[] intermediateResults,Bitmap bitmap){
         Log.d("DBR", "results: "+intermediateResults.length);
-
-        for (IntermediateResult ir:intermediateResults){
-            if (ir.resultType==EnumIntermediateResultType.IRT_TYPED_BARCODE_ZONE){
-                int maxConfidence=0;
-                for (Object result:ir.results)
-                {
-                    LocalizationResult lr = (LocalizationResult) result;
-                    maxConfidence=Math.max(lr.confidence,maxConfidence);
-                    Log.d("DBR", "confidence: "+lr.confidence);
-                }
-                Log.d("DBR", "max confidence: "+maxConfidence);
-                for (Object result:ir.results)
-                {
-                    LocalizationResult lr = (LocalizationResult) result;
-                    if (lr.confidence==maxConfidence && maxConfidence>80){
-                        ZoominToBarcodeZone(lr.resultPoints,bitmap);
-                        return;
-                    }
-                }
-            }
+        Point[] resultPoints=Utils.getResultsPointsWithHighestConfidence(intermediateResults);
+        if (resultPoints!=null){
+            ZoominToBarcodeZone(resultPoints,bitmap);
         }
     }
 
