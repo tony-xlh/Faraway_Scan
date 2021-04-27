@@ -40,8 +40,10 @@ public class PictureActivity extends AppCompatActivity {
     private TextView resultTextView;
     private ImageView iv;
     private ImageView codeImageView;
+    private ImageView srImageView;
     private BarcodeReader dbr;
     private Uri photoUri;
+    private SuperResolution sr;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +52,8 @@ public class PictureActivity extends AppCompatActivity {
         resultTextView.setMovementMethod(new ScrollingMovementMethod());
         iv=findViewById(R.id.imageView);
         codeImageView=findViewById(R.id.codeImageView2);
+        srImageView=findViewById(R.id.srImageView2);
+        sr = new SuperResolution(this);
         try {
             dbr = new BarcodeReader("t0068MgAAAJWPwDybm7nk0f9xYH25MMaVrZYcmhsiVoZrVo2hfcwRS74T6QA79OfzyvhC+9fgFI2noI8zBc66WHFCusVUgqk=");
         } catch (BarcodeReaderException e) {
@@ -68,14 +72,16 @@ public class PictureActivity extends AppCompatActivity {
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        codeImageView.setImageBitmap(null);
+        srImageView.setImageBitmap(null);
         if (requestCode==TAKE_PHOTO){
             try {
-                //Bitmap photo = (Bitmap) data.getExtras().get("data");
+                //Bitmap photo = (Bitmap) data.getExtras().get("data"); //The image is blurry.
                 //iv.setImageBitmap(photo);
                 if (photoUri != null) {
                     iv.setImageURI(photoUri);
                     Bitmap bm =  ((BitmapDrawable)iv.getDrawable()).getBitmap();
-                    decodeBitmap(bm);
+                    decodeBitmap(bm,true);
                 }
             } catch (Exception e){
                 e.printStackTrace();
@@ -84,7 +90,7 @@ public class PictureActivity extends AppCompatActivity {
             Uri imageUri = data.getData();
             iv.setImageURI(imageUri);
             Bitmap bm =  ((BitmapDrawable)iv.getDrawable()).getBitmap();
-            decodeBitmap(bm);
+            decodeBitmap(bm,true);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -127,7 +133,7 @@ public class PictureActivity extends AppCompatActivity {
         }
     }
 
-    public void decodeBitmap(Bitmap bm)  {
+    public void decodeBitmap(Bitmap bm,Boolean original)  {
         TextResult[] results = new TextResult[0];
         try {
             results = dbr.decodeBufferedImage(bm,"");
@@ -138,12 +144,17 @@ public class PictureActivity extends AppCompatActivity {
         }
         StringBuilder sb = new StringBuilder();
         sb.append("Found ").append(results.length).append(" barcode(s):\n");
+        for (int i = 0; i < results.length; i++) {
+            sb.append(results[i].barcodeText);
+            sb.append("\n");
+        }
+        Log.d("DBR",sb.toString());
+        resultTextView.setText(sb.toString());
+
         if (results.length>0){
-            for (int i = 0; i < results.length; i++) {
-                sb.append(results[i].barcodeText);
-                sb.append("\n");
+            if (original){
+                UpdateCodeImage(results[0].localizationResult.resultPoints,bm);
             }
-            UpdateCodeImage(results[0].localizationResult.resultPoints,bm);
         } else{
             Point[] resultPoints = null;
             try {
@@ -152,12 +163,22 @@ public class PictureActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             if (resultPoints!=null){
-                UpdateCodeImage(resultPoints,bm);
+                if (original){
+                    UpdateCodeImage(resultPoints,bm);
+                }
+            }else{
+                Log.d("DBR","no detected zones");
             }
 
+            if (original){
+                if (resultPoints==null){
+                    trySr(iv);
+                }else{
+                    trySr(codeImageView);
+                }
+            }
         }
-        Log.d("DBR",sb.toString());
-        resultTextView.setText(sb.toString());
+
     }
 
     private double UpdateCodeImage(Point[] resultPoints, Bitmap bitmap){
@@ -181,5 +202,13 @@ public class PictureActivity extends AppCompatActivity {
         double percent = Math.min((double) minX/bitmap.getWidth(),(double) minY/bitmap.getHeight());
         codeImageView.setImageBitmap(cropped);
         return percent;
+    }
+
+    private void trySr(ImageView imageview){
+        Log.d("DBR","run super resolution");
+        Bitmap bm =  ((BitmapDrawable)imageview.getDrawable()).getBitmap();
+        Bitmap srbm = sr.SuperResolutionImage(bm);
+        srImageView.setImageBitmap(srbm);
+        decodeBitmap(srbm,false);
     }
 }

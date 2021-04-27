@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'de.undercouch.download'
     id 'kotlin-android'
 }
 
@@ -23,13 +24,30 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    aaptOptions {
+        noCompress "tflite"
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cc/CMakeLists.txt')
+        }
+    }
 }
 
+// import download tasks
+project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
+
+apply from: 'download.gradle'
+
 dependencies {
+    implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
+    implementation 'com.google.guava:guava:30.0-android'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation(name: 'DynamsoftBarcodeReaderAndroid', ext: 'aar')
     implementation 'androidx.preference:preference:1.1.1'

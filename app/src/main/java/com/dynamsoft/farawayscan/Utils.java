@@ -1,6 +1,9 @@
 package com.dynamsoft.farawayscan;
 
+import android.graphics.Bitmap;
 import android.util.Log;
+
+import androidx.annotation.WorkerThread;
 
 import com.dynamsoft.dbr.EnumIntermediateResultType;
 import com.dynamsoft.dbr.IntermediateResult;
