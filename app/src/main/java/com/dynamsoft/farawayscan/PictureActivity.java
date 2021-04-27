@@ -3,9 +3,11 @@ package com.dynamsoft.farawayscan;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -44,6 +46,7 @@ public class PictureActivity extends AppCompatActivity {
     private BarcodeReader dbr;
     private Uri photoUri;
     private SuperResolution sr;
+    private SharedPreferences prefs;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +57,7 @@ public class PictureActivity extends AppCompatActivity {
         codeImageView=findViewById(R.id.codeImageView2);
         srImageView=findViewById(R.id.srImageView2);
         sr = new SuperResolution(this);
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
         try {
             dbr = new BarcodeReader("t0068MgAAAJWPwDybm7nk0f9xYH25MMaVrZYcmhsiVoZrVo2hfcwRS74T6QA79OfzyvhC+9fgFI2noI8zBc66WHFCusVUgqk=");
         } catch (BarcodeReaderException e) {
@@ -170,7 +174,7 @@ public class PictureActivity extends AppCompatActivity {
                 Log.d("DBR","no detected zones");
             }
 
-            if (original){
+            if (original && prefs.getBoolean("superresolution", true) == true){
                 if (resultPoints==null){
                     trySr(iv);
                 }else{

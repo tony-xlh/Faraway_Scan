@@ -8,4 +8,5 @@
     <!-- Scan Preferences -->
     <string name="resolution">Resolution</string>
     <string name="autozoom">Auto Zoom</string>
+    <string name="superresolution">Super Resolution</string>
 </resources>

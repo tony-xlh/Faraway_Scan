@@ -15,5 +15,10 @@
             app:defaultValue="true"
             app:title="@string/autozoom" />
 
+        <SwitchPreferenceCompat
+            app:key="superresolution"
+            app:defaultValue="true"
+            app:title="@string/superresolution" />
+
     </PreferenceCategory>
 </PreferenceScreen>

@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 
@@ -71,6 +73,11 @@ public class SuperResolution {
         int height = code.getHeight();
         Bitmap bm = Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(bm);
+        Paint bc = new Paint();
+        bc.setColor(Color.WHITE);
+        bc.setStyle(Paint.Style.FILL);
+        Rect r = new Rect(0,0,50,50);
+        c.drawRect(r,bc);
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setFilterBitmap(true);
