@@ -20,7 +20,7 @@ Barcode Scanner which is designed for scanning from far away.
 3. Download [Dynamsoft Barcode Reader](https://www.dynamsoft.com/barcode-reader/overview/) and copy the `DynamsoftBarcodeReaderAndroid.aar` to app/libs.
 4. Select `Run -> Run app.` to build and run the app.
 
-## Things about Dynamsoft Barcode Reader
+## Links related to Dynamsoft Barcode Reader
 
 - [![](https://img.shields.io/badge/Download-Offline%20SDK-orange)](https://www.dynamsoft.com/barcode-reader/downloads)
 - [![](https://img.shields.io/badge/Get-30--day%20FREE%20Trial%20License-blue)](https://www.dynamsoft.com/customer/license/trialLicense/?product=dbr)
