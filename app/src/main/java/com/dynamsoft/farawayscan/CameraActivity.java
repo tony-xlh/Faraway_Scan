@@ -44,10 +44,12 @@ import com.dynamsoft.dbr.BarcodeReader;
 import com.dynamsoft.dbr.BarcodeReaderException;
 import com.dynamsoft.dbr.DBRLTSLicenseVerificationListener;
 import com.dynamsoft.dbr.DMLTSConnectionParameters;
+import com.dynamsoft.dbr.EnumConflictMode;
 import com.dynamsoft.dbr.EnumImagePixelFormat;
 import com.dynamsoft.dbr.EnumIntermediateResultSavingMode;
 import com.dynamsoft.dbr.EnumIntermediateResultType;
 import com.dynamsoft.dbr.EnumResultCoordinateType;
+import com.dynamsoft.dbr.EnumScaleUpMode;
 import com.dynamsoft.dbr.IntermediateResult;
 import com.dynamsoft.dbr.LocalizationResult;
 import com.dynamsoft.dbr.Point;
@@ -94,21 +96,10 @@ public class CameraActivity extends AppCompatActivity {
         sr = new SuperResolution(this);
         try {
             dbr = new BarcodeReader("t0068MgAAAJWPwDybm7nk0f9xYH25MMaVrZYcmhsiVoZrVo2hfcwRS74T6QA79OfzyvhC+9fgFI2noI8zBc66WHFCusVUgqk=");
+            Utils.updateDBRSettings(dbr,prefs);
         } catch (BarcodeReaderException e) {
             e.printStackTrace();
         }
-
-        try {
-            PublicRuntimeSettings rs = dbr.getRuntimeSettings();
-            rs.intermediateResultTypes= EnumIntermediateResultType.IRT_TYPED_BARCODE_ZONE;
-            rs.intermediateResultSavingMode= EnumIntermediateResultSavingMode.IRSM_MEMORY;
-            rs.resultCoordinateType= EnumResultCoordinateType.RCT_PIXEL;
-            dbr.updateRuntimeSettings(rs);
-        } catch (BarcodeReaderException e) {
-            e.printStackTrace();
-        }
-
-
 
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(new Runnable() {

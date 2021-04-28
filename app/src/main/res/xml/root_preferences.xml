@@ -19,6 +19,16 @@
             app:key="superresolution"
             app:defaultValue="false"
             app:title="@string/superresolution" />
+
+        <EditTextPreference
+            android:key="template"
+            android:singleLine="false"
+            android:title="DBR Template" />
+
+        <EditTextPreference
+            android:key="scaleup"
+            android:singleLine="true"
+            android:title="Scale Up" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/History_header">

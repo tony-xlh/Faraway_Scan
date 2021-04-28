@@ -60,6 +60,7 @@ public class PictureActivity extends AppCompatActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         try {
             dbr = new BarcodeReader("t0068MgAAAJWPwDybm7nk0f9xYH25MMaVrZYcmhsiVoZrVo2hfcwRS74T6QA79OfzyvhC+9fgFI2noI8zBc66WHFCusVUgqk=");
+            Utils.updateDBRSettings(dbr,prefs);
         } catch (BarcodeReaderException e) {
             e.printStackTrace();
         }
