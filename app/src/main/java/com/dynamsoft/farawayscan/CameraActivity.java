@@ -75,11 +75,13 @@ public class CameraActivity extends AppCompatActivity {
     private ImageView srImageView;
     private ExecutorService exec;
     private Camera camera;
+    private ImageAnalysis imageAnalysis;
     private BarcodeReader dbr;
     private SeekBar zoomRatioSeekBar;
     private Long TouchDownTime;
     private SharedPreferences prefs;
     private SuperResolution sr;
+    private ImageAnalysis.Analyzer analyzer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +96,7 @@ public class CameraActivity extends AppCompatActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         exec = Executors.newSingleThreadExecutor();
         sr = new SuperResolution(this);
+        analyzer = getAnalyzer();
         try {
             dbr = new BarcodeReader("t0068MgAAAJWPwDybm7nk0f9xYH25MMaVrZYcmhsiVoZrVo2hfcwRS74T6QA79OfzyvhC+9fgFI2noI8zBc66WHFCusVUgqk=");
             Utils.updateDBRSettings(dbr,prefs);
@@ -139,6 +142,11 @@ public class CameraActivity extends AppCompatActivity {
             zoomRatioSeekBar.setProgress(0);
             codeImageView.setImageBitmap(null);
             srImageView.setImageBitmap(null);
+            Boolean continuous_scan = prefs.getBoolean("continuous_scan",false);
+            if (continuous_scan==false){
+                imageAnalysis.clearAnalyzer();
+                imageAnalysis.setAnalyzer(exec,analyzer);
+            }
         } else {
             super.onBackPressed();
         }
@@ -208,9 +216,23 @@ public class CameraActivity extends AppCompatActivity {
         imageAnalysisBuilder.setTargetResolution(resolution)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST);
 
-        ImageAnalysis imageAnalysis = imageAnalysisBuilder.build();
+        imageAnalysis = imageAnalysisBuilder.build();
+        imageAnalysis.setAnalyzer(exec, analyzer);
 
-        imageAnalysis.setAnalyzer(exec, new ImageAnalysis.Analyzer() {
+        CameraSelector cameraSelector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
+        preview.setSurfaceProvider(previewView.createSurfaceProvider());
+
+        UseCaseGroup useCaseGroup = new UseCaseGroup.Builder()
+                .addUseCase(preview)
+                .addUseCase(imageAnalysis)
+                .build();
+        camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, useCaseGroup);
+    }
+
+    private ImageAnalysis.Analyzer getAnalyzer(){
+        return new ImageAnalysis.Analyzer() {
+            @SuppressLint("UnsafeExperimentalUsageError")
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void analyze(@NonNull ImageProxy image) {
@@ -251,17 +273,7 @@ public class CameraActivity extends AppCompatActivity {
                 }
                 image.close();
             }
-        });
-
-        CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
-        preview.setSurfaceProvider(previewView.createSurfaceProvider());
-
-        UseCaseGroup useCaseGroup = new UseCaseGroup.Builder()
-                .addUseCase(preview)
-                .addUseCase(imageAnalysis)
-                .build();
-        camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, useCaseGroup);
+        };
     }
 
     private TextResult[] decodeBitmap(Bitmap bitmap){
@@ -282,7 +294,10 @@ public class CameraActivity extends AppCompatActivity {
                 }
             }
         }
-
+        Boolean continuous_scan = prefs.getBoolean("continuous_scan",false);
+        if (results.length>0 && continuous_scan==false){
+            imageAnalysis.clearAnalyzer();
+        }
         String resultString = getBarcodeResult(results);
         Log.d("DBR", resultString);
         UpdateResult(resultString);

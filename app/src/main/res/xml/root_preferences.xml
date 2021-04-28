@@ -20,6 +20,11 @@
             app:defaultValue="false"
             app:title="@string/superresolution" />
 
+        <SwitchPreferenceCompat
+            app:key="continuous_scan"
+            app:defaultValue="false"
+            app:title="Continuous Scan" />
+
         <EditTextPreference
             android:key="template"
             android:singleLine="false"
