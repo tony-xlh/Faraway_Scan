@@ -194,6 +194,9 @@ public class CameraActivity extends AppCompatActivity {
         if (prefs.getString("resolution", "1080P").equals("1080P")) {
             resWidth=1080;
             resHeight=1920;
+        } else if (prefs.getString("resolution", "4K").equals("4K")){
+            resWidth=2160;
+            resHeight=3840;
         }
         Size resolution = new Size(resWidth, resHeight);
         Display d = getDisplay();
@@ -221,6 +224,7 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void analyze(@NonNull ImageProxy image) {
                 int rotationDegrees = image.getImageInfo().getRotationDegrees();
+                Log.d("DBR",image.getWidth()+"x"+image.getHeight());
                 Bitmap bitmap = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
                 YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
                 converter.yuvToRgb(image.getImage(), bitmap);
@@ -290,7 +294,7 @@ public class CameraActivity extends AppCompatActivity {
 
         String resultString = getBarcodeResult(results);
         Log.d("DBR", resultString);
-        resultView.setText(resultString);
+        UpdateResult(resultString);
         return results;
     }
 
@@ -385,6 +389,16 @@ public class CameraActivity extends AppCompatActivity {
                 // This code will always run on the UI thread, therefore is safe to modify UI elements.
                 codeImageView.setImageBitmap(cropped);
                 srImageView.setImageBitmap(sr);
+            }
+        });
+    }
+
+    private void UpdateResult(String result){
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // This code will always run on the UI thread, therefore is safe to modify UI elements.
+                resultView.setText(result);
             }
         });
     }
