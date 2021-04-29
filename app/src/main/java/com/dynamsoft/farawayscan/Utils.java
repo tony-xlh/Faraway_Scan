@@ -40,7 +40,7 @@ public class Utils {
         if (scaleupEnabled){
             rs.scaleUpModes[1] = Integer.parseInt(scaleup.split(",")[0]);
         }
-
+        
         dbr.updateRuntimeSettings(rs);
         if (scaleupEnabled) {
             Log.d("DBR","scaleup enabled");

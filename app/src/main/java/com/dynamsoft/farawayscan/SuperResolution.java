@@ -22,6 +22,8 @@ public class SuperResolution {
     private MappedByteBuffer model;
     private static final String MODEL_NAME = "ESRGAN.tflite";
     private static final int UPSCALE_FACTOR = 4;
+    private int inpwidth=50;
+    private int inpheight=50;
     private Context context;
     static {
         System.loadLibrary("SuperResolution");
@@ -52,10 +54,10 @@ public class SuperResolution {
     }
 
     public Bitmap SuperResolutionImage(Bitmap bm){
-        if (bm.getWidth()<50){
-            bm=padded(bm);
+        if (bm.getWidth()<inpwidth && bm.getHeight()<inpheight){
+            bm = padded(bm);
         }else{
-            bm = Bitmap.createScaledBitmap(bm, 50, 50, true);
+            bm = squared(bm);
         }
 
         int[] lowResRGB = new int[bm.getWidth() * bm.getHeight()];
@@ -71,18 +73,38 @@ public class SuperResolution {
     private Bitmap padded(Bitmap code) {
         int width = code.getWidth();
         int height = code.getHeight();
-        Bitmap bm = Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888);
+        Bitmap bm = Bitmap.createBitmap(inpwidth, inpheight, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(bm);
         Paint bc = new Paint();
         bc.setColor(Color.WHITE);
         bc.setStyle(Paint.Style.FILL);
-        Rect r = new Rect(0,0,50,50);
+        Rect r = new Rect(0,0,width,height);
         c.drawRect(r,bc);
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setFilterBitmap(true);
         paint.setDither(true);
         c.drawBitmap(code,0,0,paint);
+        return bm;
+    }
+
+    private Bitmap squared(Bitmap code) {
+        int width = code.getWidth();
+        int height = code.getHeight();
+        int longside = Math.max(width,height);
+        Bitmap bm = Bitmap.createBitmap(longside, longside, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bm);
+        Paint bc = new Paint();
+        bc.setColor(Color.WHITE);
+        bc.setStyle(Paint.Style.FILL);
+        Rect r = new Rect(0,0,width,height);
+        c.drawRect(r,bc);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setFilterBitmap(true);
+        paint.setDither(true);
+        c.drawBitmap(code,0,0,paint);
+        bm = Bitmap.createScaledBitmap(bm, inpwidth, inpheight, true);
         return bm;
     }
 
