@@ -1,8 +1,11 @@
 package com.dynamsoft.farawayscan;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.util.Log;
+import android.widget.ImageView;
 
 import androidx.annotation.WorkerThread;
 
@@ -17,6 +20,8 @@ import com.dynamsoft.dbr.IntermediateResult;
 import com.dynamsoft.dbr.LocalizationResult;
 import com.dynamsoft.dbr.Point;
 import com.dynamsoft.dbr.PublicRuntimeSettings;
+
+import java.util.ArrayList;
 
 public class Utils {
 
@@ -72,6 +77,17 @@ public class Utils {
         return null;
     }
 
+    public static ArrayList<android.graphics.Point> PointsAsArrayList(Point[] points){
+        ArrayList<android.graphics.Point> array = new ArrayList<>();
+        for (Point point:points){
+            android.graphics.Point newPoint = new android.graphics.Point();
+            newPoint.x=point.x;
+            newPoint.y=point.y;
+            array.add(newPoint);
+        }
+        return array;
+    }
+
     public static Bitmap DetecetdBarcodeZone(Point[] resultPoints, Bitmap bitmap){
         int minX,maxX,minY,maxY;
         minX=resultPoints[0].x;
@@ -91,5 +107,12 @@ public class Utils {
         }
         Bitmap cropped = Bitmap.createBitmap(bitmap, minX, minY, width, height);
         return cropped;
+    }
+
+    public static Bitmap rotatedBitmap(Bitmap bitmap, int rotationDegrees) {
+        Matrix m = new Matrix();
+        m.postRotate(rotationDegrees);
+        Bitmap bitmapRotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, false);
+        return bitmapRotated;
     }
 }

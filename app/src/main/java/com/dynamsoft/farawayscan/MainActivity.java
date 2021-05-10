@@ -5,6 +5,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -21,20 +22,32 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button liveScan = findViewById(R.id.liveScan);
         Context ctx=this;
+        Button liveScan = findViewById(R.id.liveScan);
+
         liveScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (hasCameraPermission()) {
-                    Intent intent = new Intent(ctx, CameraActivity.class);
-                    startActivity(intent);
-                } else {
-                    requestPermission();
-                    Toast.makeText(ctx, "Please grant camera permission" , Toast.LENGTH_SHORT).show();
-                }
+                startScan(DCEActivity.class);
             }
         });
+        Button liveScanCameraX = findViewById(R.id.liveScanCamaraX);
+        liveScanCameraX.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startScan(CameraActivity.class);
+            }
+        });
+    }
+
+    private void startScan(Class<?> target){
+        if (hasCameraPermission()) {
+            Intent intent = new Intent(this, target);
+            startActivity(intent);
+        } else {
+            requestPermission();
+            Toast.makeText(this, "Please grant camera permission" , Toast.LENGTH_SHORT).show();
+        }
     }
 
     private boolean hasCameraPermission() {

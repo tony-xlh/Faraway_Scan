@@ -50,6 +50,7 @@ dependencies {
     implementation 'com.google.guava:guava:30.0-android'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation(name: 'DynamsoftBarcodeReaderAndroid', ext: 'aar')
+    implementation(name: 'DynamsoftCameraEnhancer', ext: 'aar')
     implementation 'androidx.preference:preference:1.1.1'
     def camerax_version = "1.0.0-beta07"
     // CameraX core library using camera2 implementation

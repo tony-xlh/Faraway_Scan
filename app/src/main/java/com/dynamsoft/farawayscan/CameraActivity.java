@@ -228,6 +228,7 @@ public class CameraActivity extends AppCompatActivity {
                 .addUseCase(imageAnalysis)
                 .build();
         camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, useCaseGroup);
+        Log.d("DBR","max ratio: "+camera.getCameraInfo().getZoomState().getValue().getMaxZoomRatio());
     }
 
     private ImageAnalysis.Analyzer getAnalyzer(){
@@ -241,7 +242,7 @@ public class CameraActivity extends AppCompatActivity {
                 Bitmap bitmap = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
                 YuvToRgbConverter converter = new YuvToRgbConverter(CameraActivity.this);
                 converter.yuvToRgb(image.getImage(), bitmap);
-                bitmap = rotatedBitmap(bitmap, rotationDegrees);
+                bitmap = Utils.rotatedBitmap(bitmap, rotationDegrees);
                 TextResult[] decoded = decodeBitmap(bitmap);
                 if (decoded.length == 0 || decoded == null){
                     if (prefs.getBoolean("superresolution", false) == true){
@@ -314,13 +315,6 @@ public class CameraActivity extends AppCompatActivity {
             }
         }
         return sb.toString();
-    }
-
-    private Bitmap rotatedBitmap(Bitmap bitmap, int rotationDegrees) {
-        Matrix m = new Matrix();
-        m.postRotate(rotationDegrees);
-        Bitmap bitmapRotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, false);
-        return bitmapRotated;
     }
 
     //Leave sr to null if not exist
