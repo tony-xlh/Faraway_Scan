@@ -74,15 +74,8 @@ public class DCEActivity extends AppCompatActivity {
         zoomRatioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Rect r = new Rect();
                 float percent = progress/100;
-                r.right=mCamera.getResolution().getWidth();
-                r.bottom=mCamera.getResolution().getHeight();
-                r.left= (int) (r.right*percent);
-                r.top= (int) (r.bottom*percent);
                 float factor = (float) percent*4;
-                Log.d("DBR", String.valueOf(factor));
-                mCamera.setZoomRegion(r,0);
                 mCamera.setZoomFactor(factor);
             }
 
@@ -132,18 +125,18 @@ public class DCEActivity extends AppCompatActivity {
             public void onPreviewOriginalFrame(Frame frame) {
                 Log.d("DBR", "original");
                 Log.d("DBR", "orientation: "+frame.getOrientation());
+                Bitmap bitmap = FrameToBitmap(frame);
                 Boolean continuous_scan = prefs.getBoolean("continuous_scan",false);
                 if (scanned && continuous_scan==false){
                     return;
                 }
                 TextResult[] results = new TextResult[0];
                 try {
-                    results = dbr.decodeBuffer(frame.getData(),frame.getWidth(),frame.getHeight(),frame.getStrides()[0],frame.getFormat(),"");
-                } catch (BarcodeReaderException e) {
+                    //results = dbr.decodeBuffer(frame.getData(),frame.getWidth(),frame.getHeight(),frame.getStrides()[0],frame.getFormat(),"");
+                    results = dbr.decodeBufferedImage(bitmap, "");
+                } catch (BarcodeReaderException | IOException e) {
                     e.printStackTrace();
                 }
-
-                Bitmap bitmap = FrameToBitmap(frame);
 
                 if (results != null && results.length > 0) {
                     StringBuilder sb = new StringBuilder();
@@ -155,8 +148,6 @@ public class DCEActivity extends AppCompatActivity {
                             sb.append("\n");
                         }
                         Log.d("DBR", sb.toString());
-                    } else {
-                        Log.d("DBR", "No barcode found");
                     }
                     UpdateResult(sb.toString());
                     UpdateCodeImage(results[0].localizationResult.resultPoints,bitmap);
@@ -165,8 +156,10 @@ public class DCEActivity extends AppCompatActivity {
                     Point[] resultPoints = new Point[0];
                     try {
                         resultPoints = Utils.getResultsPointsWithHighestConfidence(dbr.getIntermediateResults());
+                        Log.d("DBR", "result points: "+resultPoints);
                         if (resultPoints!=null){
-                            mCamera.setResultPoints(Utils.PointsAsArrayList(resultPoints));
+                            mCamera.setResultPoints(Utils.PointsAsArrayList(resultPoints)); //autozoom
+                            mCamera.setZoomRegion(GetRect(resultPoints),frame.getOrientation());
                         }
                     } catch (BarcodeReaderException e) {
                         e.printStackTrace();
@@ -191,9 +184,13 @@ public class DCEActivity extends AppCompatActivity {
                 if (results.length==0){
                     cameraView.removeOverlay();
                     UpdateResult("No barcode found");
+                    Log.d("DBR", "No barcode found");
                 } else{
                     cameraView.addOverlay();
                     scanned=true;
+                    if (continuous_scan==false){
+                        mCamera.pauseCamera();
+                    }
                 }
             }
             @Override
@@ -215,9 +212,7 @@ public class DCEActivity extends AppCompatActivity {
             res=Resolution.RESOLUTION_4K;
         }
 
-        mCamera.enableFastMode(true);
         mCamera.setResolution(res);
-        mCamera.enableAutoZoom(prefs.getBoolean("autozoom", true));
         mCamera.startScanning();
     }
 
@@ -237,7 +232,13 @@ public class DCEActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        if (scanned && prefs.getBoolean("continuous_scan",false)==false){
+            mCamera.resumeCamera();
+            scanned=false;
+        }else{
+            super.onBackPressed();
+        }
+
     }
 
     private double UpdateCodeImage(Point[] resultPoints,Bitmap bitmap){
@@ -289,5 +290,22 @@ public class DCEActivity extends AppCompatActivity {
                 srImageView.setImageBitmap(sr);
             }
         });
+    }
+
+    private Rect GetRect(Point[] points) {
+        int leftX = (points[0]).x, rightX = leftX;
+        int leftY = (points[0]).y, rightY = leftY;
+        for (Point pt : points) {
+            if (pt.x < leftX)
+                leftX = pt.x;
+            if (pt.y < leftY)
+                leftY = pt.y;
+            if (pt.x > rightX)
+                rightX = pt.x;
+            if (pt.y > rightY)
+                rightY = pt.y;
+        }
+        Rect frameRegion = new Rect(leftX, leftY, rightX, rightY);
+        return frameRegion;
     }
 }
