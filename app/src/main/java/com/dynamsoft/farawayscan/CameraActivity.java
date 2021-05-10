@@ -21,6 +21,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.preference.PreferenceManager;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -82,11 +83,13 @@ public class CameraActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private SuperResolution sr;
     private ImageAnalysis.Analyzer analyzer;
+    private Context ctx;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().hide();
         setContentView(R.layout.activity_camera);
+        ctx=this;
         previewView = findViewById(R.id.previewView);
         resultView = findViewById(R.id.resultView);
         codeImageView = findViewById(R.id.codeImageView);
@@ -255,7 +258,7 @@ public class CameraActivity extends AppCompatActivity {
                                 decoded = decodeBitmap(srbm);
                                 if (decoded.length>0){
                                     UpdateCodeAndSRImage(cropped,srbm);
-                                    saveRecord(getBarcodeResult(decoded),cropped,srbm);
+                                    Utils.saveRecord(Utils.getBarcodeResult(decoded),cropped,srbm,ctx,prefs);
                                 }
                             }
                         } catch (BarcodeReaderException | IOException e) {
@@ -266,7 +269,7 @@ public class CameraActivity extends AppCompatActivity {
                     UpdateCodeImage(decoded[0].localizationResult.resultPoints,bitmap);
                     if (prefs.getBoolean("save_only_superresolution", false) == false){
                         try {
-                            saveRecord(getBarcodeResult(decoded),bitmap,null);
+                            Utils.saveRecord(Utils.getBarcodeResult(decoded),bitmap,null,ctx,prefs);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -299,50 +302,10 @@ public class CameraActivity extends AppCompatActivity {
         if (results.length>0 && continuous_scan==false){
             imageAnalysis.clearAnalyzer();
         }
-        String resultString = getBarcodeResult(results);
+        String resultString = Utils.getBarcodeResult(results);
         Log.d("DBR", resultString);
         UpdateResult(resultString);
         return results;
-    }
-
-    private String getBarcodeResult(TextResult[] results){
-        StringBuilder sb = new StringBuilder();
-        sb.append("Found ").append(results.length).append(" barcode(s):\n");
-        if (results.length>0){
-            for (int i = 0; i < results.length; i++) {
-                sb.append(results[i].barcodeText);
-                sb.append("\n");
-            }
-        }
-        return sb.toString();
-    }
-
-    //Leave sr to null if not exist
-    private void saveRecord(String result, Bitmap image,Bitmap sr) throws IOException {
-        if (image != null) {
-            Long timestamp = System.currentTimeMillis();
-            File path = this.getExternalFilesDir(null);
-            File imgfile = new File(path, timestamp + ".jpg");
-            File srfile = new File(path, timestamp + "-sr.jpg");
-            File txtfile = new File(path, timestamp + ".txt");
-            String image_quality_str = prefs.getString("image_quality", "100");
-            int image_quality = Integer.parseInt(image_quality_str);
-            Log.d("DBR", imgfile.getAbsolutePath());
-            Boolean save_image = prefs.getBoolean("save_image", false);
-            if (save_image) {
-                FileOutputStream outStream = new FileOutputStream(imgfile);
-                image.compress(Bitmap.CompressFormat.JPEG, image_quality, outStream);
-                outStream.close();
-                if (sr!=null){
-                    FileOutputStream srStream = new FileOutputStream(srfile);
-                    sr.compress(Bitmap.CompressFormat.JPEG, image_quality, srStream);
-                    srStream.close();
-                }
-            }
-            FileOutputStream outStream2 = new FileOutputStream(txtfile);
-            outStream2.write(result.getBytes(Charset.defaultCharset()));
-            outStream2.close();
-        }
     }
 
     private void AutoZoom(IntermediateResult[] intermediateResults,Bitmap bitmap){

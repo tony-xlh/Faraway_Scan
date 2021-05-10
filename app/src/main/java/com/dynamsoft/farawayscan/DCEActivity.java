@@ -53,13 +53,17 @@ public class DCEActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private SuperResolution sr;
     private Boolean scanned;
+    private Context ctx;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dce);
         scanned=false;
+        ctx=this;
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
         try {
             dbr = new BarcodeReader("t0068MgAAAJWPwDybm7nk0f9xYH25MMaVrZYcmhsiVoZrVo2hfcwRS74T6QA79OfzyvhC+9fgFI2noI8zBc66WHFCusVUgqk=");
+            Utils.updateDBRSettings(dbr,prefs);
         } catch (BarcodeReaderException barcodeReaderException) {
             barcodeReaderException.printStackTrace();
         }
@@ -67,7 +71,6 @@ public class DCEActivity extends AppCompatActivity {
         srImageView = findViewById(R.id.srImageView_dce);
         codeImageView.setImageBitmap(null);
         srImageView.setImageBitmap(null);
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
         sr = new SuperResolution(this);
         resultView=findViewById(R.id.resultView_dce);
         zoomRatioSeekBar = findViewById(R.id.zoomRatioSeekBar_dce);
@@ -130,34 +133,28 @@ public class DCEActivity extends AppCompatActivity {
                 if (scanned && continuous_scan==false){
                     return;
                 }
+                String resultString="";
                 TextResult[] results = new TextResult[0];
                 try {
-                    //results = dbr.decodeBuffer(frame.getData(),frame.getWidth(),frame.getHeight(),frame.getStrides()[0],frame.getFormat(),"");
                     results = dbr.decodeBufferedImage(bitmap, "");
+                    //results = dbr.decodeBuffer(frame.getData(),frame.getWidth(),frame.getHeight(),frame.getStrides()[0],frame.getFormat(),"");
                 } catch (BarcodeReaderException | IOException e) {
                     e.printStackTrace();
                 }
 
                 if (results != null && results.length > 0) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("Found ").append(results.length).append(" barcode(s):\n");
                     if (results.length > 0) {
-                        for (int j = 0; j < results.length; j++) {
-                            TextResult tr = results[j];
-                            sb.append(tr.barcodeText);
-                            sb.append("\n");
-                        }
-                        Log.d("DBR", sb.toString());
+                        resultString=Utils.getBarcodeResult(results);
+                        UpdateCodeImage(results[0].localizationResult.resultPoints,bitmap);
+                        mCamera.setResultPoints(Utils.PointsAsArrayList(results[0].localizationResult.resultPoints));
                     }
-                    UpdateResult(sb.toString());
-                    UpdateCodeImage(results[0].localizationResult.resultPoints,bitmap);
-                    mCamera.setResultPoints(Utils.PointsAsArrayList(results[0].localizationResult.resultPoints));
                 }else{
                     Point[] resultPoints = new Point[0];
                     try {
                         resultPoints = Utils.getResultsPointsWithHighestConfidence(dbr.getIntermediateResults());
                         Log.d("DBR", "result points: "+resultPoints);
                         if (resultPoints!=null){
+                            Log.d("DBR", "autozoom");
                             mCamera.setResultPoints(Utils.PointsAsArrayList(resultPoints)); //autozoom
                             mCamera.setZoomRegion(GetRect(resultPoints),frame.getOrientation());
                         }
@@ -172,11 +169,13 @@ public class DCEActivity extends AppCompatActivity {
                             Bitmap srbm = sr.SuperResolutionImage(cropped);
                             try {
                                 results = dbr.decodeBufferedImage(srbm, "");
+                                if (results.length>0){
+                                    resultString=Utils.getBarcodeResult(results);
+                                    Utils.saveRecord(resultString,cropped,srbm,ctx,prefs);
+                                    UpdateCodeAndSRImage(cropped,srbm);
+                                }
                             } catch (BarcodeReaderException | IOException e) {
                                 e.printStackTrace();
-                            }
-                            if (results.length>0){
-                                UpdateCodeAndSRImage(cropped,srbm);
                             }
                         }
                     }
@@ -187,7 +186,15 @@ public class DCEActivity extends AppCompatActivity {
                     Log.d("DBR", "No barcode found");
                 } else{
                     cameraView.addOverlay();
+                    UpdateResult(resultString);
                     scanned=true;
+                    if (prefs.getBoolean("save_only_superresolution", false) == false){
+                        try {
+                            Utils.saveRecord(resultString,bitmap,null,ctx,prefs);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     if (continuous_scan==false){
                         mCamera.pauseCamera();
                     }
@@ -211,7 +218,7 @@ public class DCEActivity extends AppCompatActivity {
         } else if (prefs.getString("resolution", "4K").equals("4K")){
             res=Resolution.RESOLUTION_4K;
         }
-
+        mCamera.enableAutoZoom(prefs.getBoolean("autozoom", true));
         mCamera.setResolution(res);
         mCamera.startScanning();
     }

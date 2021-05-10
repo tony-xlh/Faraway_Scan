@@ -20,7 +20,12 @@ import com.dynamsoft.dbr.IntermediateResult;
 import com.dynamsoft.dbr.LocalizationResult;
 import com.dynamsoft.dbr.Point;
 import com.dynamsoft.dbr.PublicRuntimeSettings;
+import com.dynamsoft.dbr.TextResult;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 public class Utils {
@@ -114,5 +119,45 @@ public class Utils {
         m.postRotate(rotationDegrees);
         Bitmap bitmapRotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, false);
         return bitmapRotated;
+    }
+
+    //Leave sr to null if not exist
+    public static void saveRecord(String result, Bitmap image, Bitmap sr, Context ctx,SharedPreferences prefs) throws IOException {
+        if (image != null) {
+            Long timestamp = System.currentTimeMillis();
+            File path = ctx.getExternalFilesDir(null);
+            File imgfile = new File(path, timestamp + ".jpg");
+            File srfile = new File(path, timestamp + "-sr.jpg");
+            File txtfile = new File(path, timestamp + ".txt");
+            String image_quality_str = prefs.getString("image_quality", "100");
+            int image_quality = Integer.parseInt(image_quality_str);
+            Log.d("DBR", imgfile.getAbsolutePath());
+            Boolean save_image = prefs.getBoolean("save_image", false);
+            if (save_image) {
+                FileOutputStream outStream = new FileOutputStream(imgfile);
+                image.compress(Bitmap.CompressFormat.JPEG, image_quality, outStream);
+                outStream.close();
+                if (sr!=null){
+                    FileOutputStream srStream = new FileOutputStream(srfile);
+                    sr.compress(Bitmap.CompressFormat.JPEG, image_quality, srStream);
+                    srStream.close();
+                }
+            }
+            FileOutputStream outStream2 = new FileOutputStream(txtfile);
+            outStream2.write(result.getBytes(Charset.defaultCharset()));
+            outStream2.close();
+        }
+    }
+
+    public static String getBarcodeResult(TextResult[] results){
+        StringBuilder sb = new StringBuilder();
+        sb.append("Found ").append(results.length).append(" barcode(s):\n");
+        if (results.length>0){
+            for (int i = 0; i < results.length; i++) {
+                sb.append(results[i].barcodeText);
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
     }
 }
