@@ -2,6 +2,8 @@
 
 Barcode Scanner which is designed for scanning from far away.
 
+![](https://github.com/xulihang/Faraway_Scan/releases/download/release/faraway_scan.gif)
+
 ## Ways to Read Barcode in a Long Distance
 
 1. Use the camera's zoom-in feature.
