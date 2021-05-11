@@ -36,6 +36,19 @@
             android:title="Scale Up" />
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="DCE">
+
+        <SwitchPreferenceCompat
+            app:key="framelist"
+            app:defaultValue="true"
+            app:title="@string/framelist" />
+        <SwitchPreferenceCompat
+            app:key="fastmode"
+            app:defaultValue="true"
+            app:title="@string/fastmode" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="@string/History_header">
         <SwitchPreferenceCompat
             app:key="record_history"

@@ -11,6 +11,10 @@
     <string name="autozoom">Auto Zoom</string>
     <string name="superresolution">Super Resolution</string>
 
+    <!-- DCE Preferences -->
+    <string name="framelist">Use Frame List</string>
+    <string name="fastmode">Enable Fast Mode</string>
+
     <!-- History Preferences -->
     <string name="record_history">Record History</string>
     <string name="save_only_superresolution">Only Save SuperResolution Result</string>
