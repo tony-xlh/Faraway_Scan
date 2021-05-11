@@ -22,7 +22,7 @@
 
         <SwitchPreferenceCompat
             app:key="continuous_scan"
-            app:defaultValue="false"
+            app:defaultValue="true"
             app:title="Continuous Scan" />
 
         <EditTextPreference

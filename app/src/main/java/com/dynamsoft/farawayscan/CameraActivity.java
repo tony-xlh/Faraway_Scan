@@ -163,7 +163,6 @@ public class CameraActivity extends AppCompatActivity {
 
             if (heldTime > 600) { //long press
                 focus(previewView.getWidth(), previewView.getHeight(), event.getX(), event.getY(), false);
-            } else {
                 Toast.makeText(this, "Refocus after 5 seconds.", Toast.LENGTH_SHORT).show();
                 focus(previewView.getWidth(), previewView.getHeight(), event.getX(), event.getY(), true);
             }

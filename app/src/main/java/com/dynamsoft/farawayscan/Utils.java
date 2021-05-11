@@ -22,6 +22,8 @@ import com.dynamsoft.dbr.Point;
 import com.dynamsoft.dbr.PublicRuntimeSettings;
 import com.dynamsoft.dbr.TextResult;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -80,6 +82,19 @@ public class Utils {
             }
         }
         return null;
+    }
+
+    public static ArrayList<android.graphics.Point> GetResultPointsArrayListFromTextResults(TextResult[] results){
+        ArrayList<android.graphics.Point> array = new ArrayList<>();
+        for (TextResult result:results){
+            for (Point point:result.localizationResult.resultPoints){
+                android.graphics.Point newPoint = new android.graphics.Point();
+                newPoint.x=point.x;
+                newPoint.y=point.y;
+                array.add(newPoint);
+            }
+        }
+        return array;
     }
 
     public static ArrayList<android.graphics.Point> PointsAsArrayList(Point[] points){

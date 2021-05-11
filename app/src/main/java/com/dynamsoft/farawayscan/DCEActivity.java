@@ -17,10 +17,14 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.dynamsoft.dbr.BarcodeReader;
 import com.dynamsoft.dbr.BarcodeReaderException;
@@ -82,9 +86,11 @@ public class DCEActivity extends AppCompatActivity {
         zoomRatioSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float percent = progress/100;
-                float factor = (float) percent*4;
-                mCamera.setZoomFactor(factor);
+                if (fromUser){
+                    float percent = progress/100;
+                    float factor = (float) percent*4;
+                    mCamera.setZoomFactor(factor);
+                }
             }
 
             @Override
@@ -187,7 +193,7 @@ public class DCEActivity extends AppCompatActivity {
             resultString=Utils.getBarcodeResult(results);
             UpdateCodeImage(results[0].localizationResult.resultPoints,bitmap);
             UpdateLocationIfFastFrame(results,frame);
-            mCamera.setResultPoints(Utils.PointsAsArrayList(results[0].localizationResult.resultPoints)); //show overlay
+            mCamera.setResultPoints(Utils.GetResultPointsArrayListFromTextResults(results)); //show overlay
         }else{
             Point[] resultPoints = new Point[0];
             try {
@@ -276,7 +282,6 @@ public class DCEActivity extends AppCompatActivity {
         }else{
             super.onBackPressed();
         }
-
     }
 
     private double UpdateCodeImage(Point[] resultPoints,Bitmap bitmap){
