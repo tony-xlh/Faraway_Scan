@@ -187,7 +187,7 @@ public class DCEActivity extends AppCompatActivity {
             resultString=Utils.getBarcodeResult(results);
             UpdateCodeImage(results[0].localizationResult.resultPoints,bitmap);
             UpdateLocationIfFastFrame(results,frame);
-            mCamera.setResultPoints(Utils.PointsAsArrayList(results[0].localizationResult.resultPoints));
+            mCamera.setResultPoints(Utils.PointsAsArrayList(results[0].localizationResult.resultPoints)); //show overlay
         }else{
             Point[] resultPoints = new Point[0];
             try {
@@ -195,8 +195,8 @@ public class DCEActivity extends AppCompatActivity {
                 Log.d("DBR", "result points: "+resultPoints);
                 if (resultPoints!=null) {
                     Log.d("DBR", "autozoom");
-                    mCamera.setResultPoints(Utils.PointsAsArrayList(resultPoints)); //autozoom
-                    mCamera.setZoomRegion(GetRect(resultPoints,frame),frame.getOrientation());
+                    mCamera.setResultPoints(Utils.PointsAsArrayList(resultPoints));
+                    mCamera.setZoomRegion(GetRect(resultPoints,frame),frame.getOrientation()); //autozoom
                 }
             } catch (BarcodeReaderException e) {
                 e.printStackTrace();

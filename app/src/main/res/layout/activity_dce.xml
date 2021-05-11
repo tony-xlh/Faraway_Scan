@@ -56,7 +56,7 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:background="#80000000"
-        android:max="100"
+        android:max="1000"
         android:progress="0"
         app:layout_constraintBottom_toBottomOf="@+id/constraintLayout"
         app:layout_constraintEnd_toEndOf="parent"
